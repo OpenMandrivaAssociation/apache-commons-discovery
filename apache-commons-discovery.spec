@@ -13,7 +13,7 @@ Source0:        http://www.apache.org/dist/commons/%{base_name}/source/%{short_n
 Patch0:         %{name}-addosgimanifest.patch
 BuildArch:      noarch
 BuildRequires:  java-devel >= 0:1.6.0
-BuildRequires:  jpackage-utils >= 0:1.6
+BuildRequires:  jpackage-utils >= 0:1.7.5
 BuildRequires:  ant
 BuildRequires:  ant-nodeps
 BuildRequires:  junit >= 0:3.7
@@ -37,7 +37,7 @@ classes.
 %package javadoc
 Group:          Development/Java
 Summary:        API documentation for %{name}
-Requires:       jpackage-utils
+Requires:       jpackage-utils >= 0:1.7.5
 
 Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 
