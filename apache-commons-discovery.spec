@@ -4,7 +4,7 @@
 
 Name:           apache-%{short_name}
 Version:        0.4
-Release:        7
+Release:        6
 Summary:        Apache Commons Discovery
 License:        ASL 2.0
 Group:          Development/Java
@@ -13,7 +13,7 @@ Source0:        http://www.apache.org/dist/commons/%{base_name}/source/%{short_n
 Patch0:         %{name}-addosgimanifest.patch
 BuildArch:      noarch
 BuildRequires:  java-devel >= 0:1.6.0
-BuildRequires:  jpackage-utils >= 0:1.7.5
+BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant
 BuildRequires:  ant-nodeps
 BuildRequires:  junit >= 0:3.7
@@ -37,7 +37,7 @@ classes.
 %package javadoc
 Group:          Development/Java
 Summary:        API documentation for %{name}
-Requires:       jpackage-utils >= 0:1.7.5
+Requires:       jpackage-utils
 
 Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 
