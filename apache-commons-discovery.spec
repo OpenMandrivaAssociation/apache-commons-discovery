@@ -3,8 +3,8 @@
 %global short_name commons-%{base_name}
 
 Name:           apache-%{short_name}
-Version:        0.4
-Release:        8
+Version:        0.5
+Release:        1
 Summary:        Apache Commons Discovery
 License:        ASL 2.0
 Group:          Development/Java
