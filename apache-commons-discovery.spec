@@ -14,8 +14,7 @@ Patch0:         %{name}-addosgimanifest.patch
 BuildArch:      noarch
 BuildRequires:  java-devel >= 0:1.6.0
 BuildRequires:  jpackage-utils >= 0:1.6
-BuildRequires:  ant
-BuildRequires:  ant-nodeps
+BuildRequires:  maven2
 BuildRequires:  junit >= 0:3.7
 BuildRequires:  commons-logging >= 1.1.1
 Requires:       commons-logging >= 1.1.1
@@ -49,17 +48,14 @@ Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 %patch0
 
 %build
-ant \
-  -Djunit.jar=%(find-jar junit) \
-  -Dlogger.jar=%(find-jar commons-logging) \
-  test.discovery dist
+mvn install javadoc:javadoc
 
 %install
 rm -rf %{buildroot}
 
 # jar
 install -d -m 755 %{buildroot}%{_javadir}
-install -p -m 644 dist/%{short_name}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
+install -p -m 644 target/%{short_name}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
 
 pushd %{buildroot}%{_javadir}
 for jar in *-%{version}.jar; do
@@ -71,7 +67,7 @@ popd # come back from javadir
 
 # javadoc
 install -d -m 755 %{buildroot}%{_javadocdir}/%{name}-%{version}
-cp -pr dist/docs/api/* %{buildroot}%{_javadocdir}/%{name}-%{version}
+cp -pr target/site/api/* %{buildroot}%{_javadocdir}/%{name}-%{version}
 ln -s %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
 
 %clean
