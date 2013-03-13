@@ -17,8 +17,8 @@ BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  ant
 BuildRequires:  ant-nodeps
 BuildRequires:  junit >= 0:3.7
-BuildRequires:  apache-commons-logging >= 1.1.1
-Requires:       apache-commons-logging >= 1.1.1
+BuildRequires:  commons-logging >= 1.1.1
+Requires:       commons-logging >= 1.1.1
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
