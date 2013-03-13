@@ -15,6 +15,8 @@ BuildArch:      noarch
 BuildRequires:  java-devel >= 0:1.6.0
 BuildRequires:  jpackage-utils >= 0:1.6
 BuildRequires:  maven2
+BuildRequires:	maven2-common-poms
+BuildRequires:	apache-commons-parent
 BuildRequires:  junit >= 0:3.7
 BuildRequires:  commons-logging >= 1.1.1
 Requires:       commons-logging >= 1.1.1
