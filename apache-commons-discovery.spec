@@ -48,7 +48,8 @@ Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 %patch0
 
 %build
-mvn install javadoc:javadoc
+mvn-jpp package
+mvn-jpp javadoc:javadoc
 
 %install
 rm -rf %{buildroot}
