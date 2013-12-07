@@ -4,7 +4,7 @@
 
 Name:           apache-%{short_name}
 Version:        0.5
-Release:        4
+Release:        5
 Summary:        Apache Commons Discovery
 License:        ASL 2.0
 Group:          Development/Java
