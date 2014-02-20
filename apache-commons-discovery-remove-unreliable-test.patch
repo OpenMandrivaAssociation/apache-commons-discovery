@@ -1,0 +1,41 @@
+From e61f06eccf6946a6dc4633fe39206d0ad427caab Mon Sep 17 00:00:00 2001
+From: Michal Srb <msrb@redhat.com>
+Date: Wed, 7 Aug 2013 07:12:16 +0200
+Subject: [PATCH] Remove unreliable test
+
+---
+ .../org/apache/commons/discovery/test/TestAll.java   | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/src/test/org/apache/commons/discovery/test/TestAll.java b/src/test/org/apache/commons/discovery/test/TestAll.java
+index 623a6d8..fa81585 100644
+--- a/src/test/org/apache/commons/discovery/test/TestAll.java
++++ b/src/test/org/apache/commons/discovery/test/TestAll.java
+@@ -291,24 +291,4 @@ public class TestAll {
+         assertNotNull(serviceImpl);
+         assertEquals(TestImpl2_1.class, serviceImpl.getClass());
+     }
+-
+-    @Test
+-    public void findImplementationsViaService() {
+-        final int expectedLogImplementations = 2;
+-        int actualLogImplementations = 0;
+-
+-        Enumeration<? extends Log> logImplementations = providers(newSPInterface(Log.class,
+-                new Class<?>[]{ String.class },
+-                new Object[]{ getClass().getName() }),
+-                null);
+-
+-        while (logImplementations.hasMoreElements()) {
+-            Log log = logImplementations.nextElement();
+-            assertNotNull(log);
+-            actualLogImplementations++;
+-        }
+-
+-        assertEquals(expectedLogImplementations, actualLogImplementations);
+-    }
+-
+ }
+-- 
+1.8.1.4
+

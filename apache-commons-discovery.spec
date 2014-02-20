@@ -1,30 +1,25 @@
-
+%{?_javapackages_macros:%_javapackages_macros}
 %global base_name  discovery
 %global short_name commons-%{base_name}
 
 Name:           apache-%{short_name}
 Version:        0.5
-Release:        2
+Release:        9.0%{?dist}
+Epoch:          2
 Summary:        Apache Commons Discovery
 License:        ASL 2.0
-Group:          Development/Java
 URL:            http://commons.apache.org/%{base_name}
 Source0:        http://www.apache.org/dist/commons/%{base_name}/source/%{short_name}-%{version}-src.tar.gz
 Patch0:         %{name}-addosgimanifest.patch
+Patch1:         %{name}-remove-unreliable-test.patch
 BuildArch:      noarch
-BuildRequires:  java-devel >= 0:1.6.0
-BuildRequires:  jpackage-utils >= 0:1.6
-BuildRequires:  maven2
-BuildRequires:	maven2-common-poms
-BuildRequires:	apache-commons-parent
-BuildRequires:  junit >= 0:3.7
-BuildRequires:  commons-logging >= 1.1.1
-Requires:       commons-logging >= 1.1.1
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRequires:  maven-local
+BuildRequires:  java-devel >= 1:1.6.0
+BuildRequires:  maven-surefire-provider-junit4
+BuildRequires:  apache-commons-logging >= 1.1.1
 
-# This should go away with F-17
-Provides:       jakarta-%{short_name} = %{version}-%{release}
+Provides:       jakarta-%{short_name} = %{epoch}:%{version}-%{release}
 Obsoletes:      jakarta-%{short_name} <= 1:0.4
 
 %description
@@ -36,10 +31,9 @@ instantiating classes, and for lifecycle management of singleton (factory)
 classes.
 
 %package javadoc
-Group:          Development/Java
 Summary:        API documentation for %{name}
-Requires:       jpackage-utils
 
+Provides:       jakarta-%{short_name}-javadoc = %{epoch}:%{version}-%{release}
 Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 
 %description javadoc
@@ -48,42 +42,68 @@ Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
 %prep
 %setup -q -n %{short_name}-%{version}-src
 %patch0
+%patch1 -p1
 
 %build
-mvn-jpp package
-mvn-jpp javadoc:javadoc
+%mvn_file  : %{short_name} %{name}
+%mvn_build -X
 
 %install
-rm -rf %{buildroot}
+%mvn_install
 
-# jar
-install -d -m 755 %{buildroot}%{_javadir}
-install -p -m 644 target/%{short_name}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
-
-pushd %{buildroot}%{_javadir}
-for jar in *-%{version}.jar; do
-    ln -sf ${jar} `echo $jar| sed "s|apache-||g"`
-    ln -sf ${jar} `echo $jar| sed "s|-%{version}||g"`
-    ln -sf ${jar} `echo $jar| sed "s|apache-\(.*\)-%{version}|\1|g"`
-done
-popd # come back from javadir
-
-# javadoc
-install -d -m 755 %{buildroot}%{_javadocdir}/%{name}-%{version}
-cp -pr target/site/api/* %{buildroot}%{_javadocdir}/%{name}-%{version}
-ln -s %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
-
-%clean
-rm -rf %{buildroot}
-
-%files
-%defattr(-,root,root,-)
+%files -f .mfiles
 %doc LICENSE.txt NOTICE.txt RELEASE-NOTES.txt
-%{_javadir}/*
 
-%files javadoc
-%defattr(-,root,root,-)
-%doc %{_javadocdir}/%{name}-%{version}
-%doc %{_javadocdir}/%{name}
+%files javadoc -f .mfiles-javadoc
 %doc LICENSE.txt NOTICE.txt
 
+
+%changelog
+* Wed Aug 07 2013 Michal Srb <msrb@redhat.com> - 2:0.5-9
+- Remove unreliable test (Resolves: #991968)
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Wed Feb 06 2013 Java SIG <java-devel@lists.fedoraproject.org> - 2:0.5-6
+- Update for https://fedoraproject.org/wiki/Fedora_19_Maven_Rebuild
+- Replace maven BuildRequires with maven-local
+
+* Tue Jan 15 2013 Michal Srb <msrb@redhat.com> - 2:0.5-5
+- Build with xmvn
+
+* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Thu May 17 2012 gil cattaneo <puntogil@libero.it> - 2:0.5-3
+- add maven pom
+
+* Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Mon Nov 7 2011 Alexander Kurtakov <akurtako@redhat.com> 2:0.5-1
+- Update to 0.5 upstream release.
+- Build with maven.
+
+* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.4-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Thu Jul  8 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-5
+- Add license to javadoc subpackage
+- Fix jar symlink installation
+
+* Wed May 12 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-4
+- Add obsoletes to javadoc subpackage
+- Add proper symlinks for unversioned jar files
+
+* Fri May  7 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-3
+- Add jpackage-utils as dep for -javadoc subpackage
+
+* Fri May  7 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-2
+- Fix provides
+
+* Thu May  6 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.4-1
+- Rename and cleanup of jakarta-commons-discovery
