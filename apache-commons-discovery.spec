@@ -8,7 +8,7 @@ Release:        9.0%{?dist}
 Epoch:          2
 Summary:        Apache Commons Discovery
 License:        ASL 2.0
-URL:            http://commons.apache.org/%{base_name}
+URL:            https://commons.apache.org/%{base_name}
 Source0:        http://www.apache.org/dist/commons/%{base_name}/source/%{short_name}-%{version}-src.tar.gz
 Patch0:         %{name}-addosgimanifest.patch
 Patch1:         %{name}-remove-unreliable-test.patch
