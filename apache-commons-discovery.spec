@@ -1,109 +1,87 @@
-%{?_javapackages_macros:%_javapackages_macros}
-%global base_name  discovery
-%global short_name commons-%{base_name}
+Name:		apache-commons-discovery
+Version:	0.5
+Release:	10
+Epoch:		2
+Summary:	Find implementations of pluggable Java interfaces
+Group:		Development/Java
+License:	ASL 2.0
+URL:		https://commons.apache.org/discovery/
+Source0:	https://archive.apache.org/dist/commons/discovery/source/commons-discovery-%{version}-src.tar.gz
 
-Name:           apache-%{short_name}
-Version:        0.5
-Release:        9.0%{?dist}
-Epoch:          2
-Summary:        Apache Commons Discovery
-License:        ASL 2.0
-URL:            https://commons.apache.org/%{base_name}
-Source0:        http://www.apache.org/dist/commons/%{base_name}/source/%{short_name}-%{version}-src.tar.gz
-Patch0:         %{name}-addosgimanifest.patch
-Patch1:         %{name}-remove-unreliable-test.patch
-BuildArch:      noarch
+BuildArch:	noarch
+BuildRequires:	python
+BuildRequires:	mvn(org.apache.commons:commons-parent:pom::)
+BuildRequires:	mvn(org.apache:apache:pom::)
+BuildRequires:	mvn(commons-logging:commons-logging)
+# Literal, so the first rpmbuild -bs records them before sysjar is installed.
+BuildRequires:	maven
+BuildRequires:	java-current-devel
+BuildSystem:	maven
+BuildOption(install):	--file-name commons-discovery --link %{name}
 
-BuildRequires:  maven-local
-BuildRequires:  java-devel >= 1:1.6.0
-BuildRequires:  maven-surefire-provider-junit4
-BuildRequires:  apache-commons-logging >= 1.1.1
-
-Provides:       jakarta-%{short_name} = %{epoch}:%{version}-%{release}
-Obsoletes:      jakarta-%{short_name} <= 1:0.4
+Provides:	jakarta-commons-discovery = %{epoch}:%{version}-%{release}
+Obsoletes:	jakarta-commons-discovery <= 1:0.4
+Obsoletes:	%{name}-javadoc < %{epoch}:%{version}-%{release}
+Obsoletes:	jakarta-commons-discovery-javadoc <= 1:0.4
 
 %description
-The Discovery component is about discovering, or finding, implementations for
-pluggable interfaces.  Pluggable interfaces are specified with the intent that
-multiple implementations are, or will be, available to provide the service
-described by the interface.  Discovery provides facilities for finding and
-instantiating classes, and for lifecycle management of singleton (factory)
-classes.
-
-%package javadoc
-Summary:        API documentation for %{name}
-
-Provides:       jakarta-%{short_name}-javadoc = %{epoch}:%{version}-%{release}
-Obsoletes:      jakarta-%{short_name}-javadoc <= 1:0.4
-
-%description javadoc
-%{summary}.
+Apache Commons Discovery finds and instantiates implementations of
+pluggable interfaces. 0.5 is the last upstream release. It needs Java 8
+and Commons Logging. Tests are skipped. The automatic module name is
+org.apache.commons.discovery.
 
 %prep
-%setup -q -n %{short_name}-%{version}-src
-%patch0
-%patch1 -p1
+%autosetup -n commons-discovery-%{version}-src
+# Assembly is bound to package and would attach a second artifact.
+# The reporting plugins are not installed.
+python - <<'PY'
+import xml.etree.ElementTree as ET
+from pathlib import Path
 
-%build
-%mvn_file  : %{short_name} %{name}
-%mvn_build -X
+ET.register_namespace("", "http://maven.apache.org/POM/4.0.0")
+ET.register_namespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
 
-%install
-%mvn_install
+def local(tag):
+    return tag.rsplit("}", 1)[-1]
+
+path = Path("pom.xml")
+tree = ET.parse(path)
+root = tree.getroot()
+removed_asm = 0
+for parent in list(root.iter()):
+    for child in list(parent):
+        if local(child.tag) != "plugin":
+            continue
+        artifact = ""
+        for item in child:
+            if local(item.tag) == "artifactId":
+                artifact = (item.text or "").strip()
+        if artifact == "maven-assembly-plugin":
+            parent.remove(child)
+            removed_asm += 1
+removed_reporting = 0
+for child in list(root):
+    if local(child.tag) == "reporting":
+        root.remove(child)
+        removed_reporting += 1
+if removed_asm != 1 or removed_reporting != 1:
+    raise SystemExit(f"edit failed asm={removed_asm} reporting={removed_reporting}")
+tree.write(path, encoding="UTF-8", xml_declaration=True)
+text = path.read_text(encoding="utf-8")
+if "maven-assembly-plugin" in text or "<reporting>" in text:
+    raise SystemExit("pom rewrite failed")
+if "<sourceDirectory>src/java</sourceDirectory>" not in text:
+    raise SystemExit("source directory missing")
+if "commons-logging" not in text:
+    raise SystemExit("logging dependency missing")
+PY
+
+%build -a
+cat > manifest-addition <<'EOF'
+Automatic-Module-Name: org.apache.commons.discovery
+EOF
+jar ufm target/commons-discovery-%{version}.jar manifest-addition
+java --module-path target/commons-discovery-%{version}.jar --describe-module org.apache.commons.discovery | grep -q '^org.apache.commons.discovery'
 
 %files -f .mfiles
 %doc LICENSE.txt NOTICE.txt RELEASE-NOTES.txt
-
-%files javadoc -f .mfiles-javadoc
-%doc LICENSE.txt NOTICE.txt
-
-
-%changelog
-* Wed Aug 07 2013 Michal Srb <msrb@redhat.com> - 2:0.5-9
-- Remove unreliable test (Resolves: #991968)
-
-* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-8
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
-
-* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-7
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
-
-* Wed Feb 06 2013 Java SIG <java-devel@lists.fedoraproject.org> - 2:0.5-6
-- Update for https://fedoraproject.org/wiki/Fedora_19_Maven_Rebuild
-- Replace maven BuildRequires with maven-local
-
-* Tue Jan 15 2013 Michal Srb <msrb@redhat.com> - 2:0.5-5
-- Build with xmvn
-
-* Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-4
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
-
-* Thu May 17 2012 gil cattaneo <puntogil@libero.it> - 2:0.5-3
-- add maven pom
-
-* Thu Jan 12 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.5-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
-
-* Mon Nov 7 2011 Alexander Kurtakov <akurtako@redhat.com> 2:0.5-1
-- Update to 0.5 upstream release.
-- Build with maven.
-
-* Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2:0.4-6
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
-
-* Thu Jul  8 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-5
-- Add license to javadoc subpackage
-- Fix jar symlink installation
-
-* Wed May 12 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-4
-- Add obsoletes to javadoc subpackage
-- Add proper symlinks for unversioned jar files
-
-* Fri May  7 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-3
-- Add jpackage-utils as dep for -javadoc subpackage
-
-* Fri May  7 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 2:0.4-2
-- Fix provides
-
-* Thu May  6 2010 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.4-1
-- Rename and cleanup of jakarta-commons-discovery
